@@ -27,7 +27,7 @@ class BaseOptions():
         parser.add_argument('--checkpoints_dir', type=str, default='/raid/pkmandke/projects/cv_project/checkpoints', help='models are saved here')
         # model parameters
         parser.add_argument('--model', type=str, default='cycle_gan', help='chooses which model to use. define class in ./data in file named [model]_model.py')
-        parser.add_argument('--network_name', type=str, default='trait_pred_vgg16', help='chooses which model architecture to use. will be loaded from models/networks.py')
+        parser.add_argument('--network_name', type=str, default='', help='chooses which model architecture to use. will be loaded from models/networks.py')
         parser.add_argument('--init_type', type=str, default='', help='network initialization [normal | xavier | kaiming | orthogonal]')
         parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
         parser.add_argument('--n_filters', type=int, default=16, help='Number of conv filters for UNET')

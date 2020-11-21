@@ -35,8 +35,6 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--gamma', type=float, default=0.1, help='Gamma factor to reduce LR in step and multistep lr schedule')
         parser.add_argument('--lr_multi_steps', type=str, default='50, 100', help='Epoch steps to reduce LR')
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
-        # parser.add_argument('--lambda_rmse', type=float, default=1., help='Lambda parameter for rmse loss term')
-        # parser.add_argument('--lambda_ssim', type=float, default=0., help='Lambda parameter for ssim loss term')
 
         self.isTrain = True
         return parser
