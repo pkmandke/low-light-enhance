@@ -8,47 +8,47 @@ import torchvision.models as tvms
 class UNetBilinearUpsample(nn.Module):
     """ Input size assumed to be 320x320p """
 
-    def __init__(self):
+    def __init__(self, f=16):
         super(UNetBilinearUpsample, self).__init__()
 
-        self.ds1 = nn.Sequential(*[nn.Conv2d(3, 16, 3, padding=1), nn.BatchNorm2d(16), nn.ReLU(inplace=True)])
+        self.ds1 = nn.Sequential(*[nn.Conv2d(3, f, 3, padding=1), nn.BatchNorm2d(f), nn.ReLU(inplace=True)])
         self.ds2 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(16, 16, 3, stride=2), nn.BatchNorm2d(16),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(f, f, 3, stride=2), nn.BatchNorm2d(f),
               nn.ReLU(inplace=True)])  # 160x160
 
-        self.ds3 = nn.Sequential(*[nn.Conv2d(16, 32, 3, padding=1), nn.BatchNorm2d(32), nn.ReLU(inplace=True)])
+        self.ds3 = nn.Sequential(*[nn.Conv2d(f, 2*f, 3, padding=1), nn.BatchNorm2d(2*f), nn.ReLU(inplace=True)])
         self.ds4 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(32, 32, 3, stride=2), nn.BatchNorm2d(32),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(2*f, 2*f, 3, stride=2), nn.BatchNorm2d(2*f),
               nn.ReLU(inplace=True)])  # 80x80
 
-        self.ds5 = nn.Sequential(*[nn.Conv2d(32, 64, 3, padding=1), nn.BatchNorm2d(64), nn.ReLU(inplace=True)])
+        self.ds5 = nn.Sequential(*[nn.Conv2d(2*f, 4*f, 3, padding=1), nn.BatchNorm2d(4*f), nn.ReLU(inplace=True)])
         self.ds6 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(64, 64, 3, stride=2), nn.BatchNorm2d(64),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(4*f, 4*f, 3, stride=2), nn.BatchNorm2d(4*f),
               nn.ReLU(inplace=True)])  # 40x40
 
-        self.ds7 = nn.Sequential(*[nn.Conv2d(64, 128, 3, padding=1), nn.BatchNorm2d(128), nn.ReLU(inplace=True)])
+        self.ds7 = nn.Sequential(*[nn.Conv2d(4*f, 8*f, 3, padding=1), nn.BatchNorm2d(8*f), nn.ReLU(inplace=True)])
         self.ds8 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(128, 128, 3, stride=2), nn.BatchNorm2d(128),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(8*f, 8*f, 3, stride=2), nn.BatchNorm2d(8*f),
               nn.ReLU(inplace=True)])  # 20x20
 
         self.us1 = nn.Sequential(*[nn.Upsample(mode='bilinear', scale_factor=2), nn.ConstantPad2d((1, 1, 1, 1), 0),
-                                   nn.Conv2d(128, 64, 3, stride=1)])  # 40x40
-        self.us2 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(64, 64, 3, padding=1), nn.BatchNorm2d(64),
+                                   nn.Conv2d(8*f, 4*f, 3, stride=1)])  # 40x40
+        self.us2 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(4*f, 4*f, 3, padding=1), nn.BatchNorm2d(4*f),
                                    nn.ReLU(inplace=True)])  # 40x40
 
         self.us3 = nn.Sequential(*[nn.Upsample(mode='bilinear', scale_factor=2), nn.ConstantPad2d((1, 1, 1, 1), 0),
-                                   nn.Conv2d(64, 32, 3, stride=1)])  # 80x80
-        self.us4 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(32, 32, 3, padding=1), nn.BatchNorm2d(32),
+                                   nn.Conv2d(4*f, 2*f, 3, stride=1)])  # 80x80
+        self.us4 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(2*f, 2*f, 3, padding=1), nn.BatchNorm2d(2*f),
                                    nn.ReLU(inplace=True)])  # 80x80
 
         self.us5 = nn.Sequential(*[nn.Upsample(mode='bilinear', scale_factor=2), nn.ConstantPad2d((1, 1, 1, 1), 0),
-                                   nn.Conv2d(32, 16, 3, stride=1)])  # 160x160
-        self.us6 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(16, 16, 3, padding=1), nn.BatchNorm2d(16),
+                                   nn.Conv2d(2*f, f, 3, stride=1)])  # 160x160
+        self.us6 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(f, f, 3, padding=1), nn.BatchNorm2d(f),
                                    nn.ReLU(inplace=True)])  # 160x160
 
         self.us7 = nn.Sequential(*[nn.Upsample(mode='bilinear', scale_factor=2), nn.ConstantPad2d((1, 1, 1, 1), 0),
-                                   nn.Conv2d(16, 8, 3, stride=1)])  # 320x320
-        self.us8 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(8, 3, 3, padding=1)])  # 320x320
+                                   nn.Conv2d(f, int(f/2), 3, stride=1)])  # 320x320
+        self.us8 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(int(f/2), 3, 3, padding=1)])  # 320x320
 
         self.sigmoid = nn.Sigmoid()
 
@@ -70,43 +70,43 @@ class UNetBilinearUpsample(nn.Module):
 class UNetTransposeConv(nn.Module):
     """ Input size assumed to be 320x320p """
 
-    def __init__(self):
+    def __init__(self, f=16):
         super(UNetTransposeConv, self).__init__()
 
-        self.ds1 = nn.Sequential(*[nn.Conv2d(3, 16, 3, padding=1), nn.BatchNorm2d(16), nn.ReLU(inplace=True)])
+        self.ds1 = nn.Sequential(*[nn.Conv2d(3, f, 3, padding=1), nn.BatchNorm2d(f), nn.ReLU(inplace=True)])
         self.ds2 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(16, 16, 3, stride=2), nn.BatchNorm2d(16),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(f, f, 3, stride=2), nn.BatchNorm2d(f),
               nn.ReLU(inplace=True)])  # 160x160
 
-        self.ds3 = nn.Sequential(*[nn.Conv2d(16, 32, 3, padding=1), nn.BatchNorm2d(32), nn.ReLU(inplace=True)])
+        self.ds3 = nn.Sequential(*[nn.Conv2d(f, 2*f, 3, padding=1), nn.BatchNorm2d(2*f), nn.ReLU(inplace=True)])
         self.ds4 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(32, 32, 3, stride=2), nn.BatchNorm2d(32),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(2*f, 2*f, 3, stride=2), nn.BatchNorm2d(2*f),
               nn.ReLU(inplace=True)])  # 80x80
 
-        self.ds5 = nn.Sequential(*[nn.Conv2d(32, 64, 3, padding=1), nn.BatchNorm2d(64), nn.ReLU(inplace=True)])
+        self.ds5 = nn.Sequential(*[nn.Conv2d(2*f, 4*f, 3, padding=1), nn.BatchNorm2d(4*f), nn.ReLU(inplace=True)])
         self.ds6 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(64, 64, 3, stride=2), nn.BatchNorm2d(64),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(4*f, 4*f, 3, stride=2), nn.BatchNorm2d(4*f),
               nn.ReLU(inplace=True)])  # 40x40
 
-        self.ds7 = nn.Sequential(*[nn.Conv2d(64, 128, 3, padding=1), nn.BatchNorm2d(128), nn.ReLU(inplace=True)])
+        self.ds7 = nn.Sequential(*[nn.Conv2d(4*f, 8*f, 3, padding=1), nn.BatchNorm2d(8*f), nn.ReLU(inplace=True)])
         self.ds8 = nn.Sequential(
-            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(128, 128, 3, stride=2), nn.BatchNorm2d(128),
+            *[nn.ConstantPad2d((1, 0, 1, 0), 0), nn.Conv2d(8*f, 8*f, 3, stride=2), nn.BatchNorm2d(8*f),
               nn.ReLU(inplace=True)])  # 20x20
 
-        self.us1 = nn.Sequential(*[nn.ConvTranspose2d(128, 64, 2, stride=2)])  # 40x40
-        self.us2 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(64, 64, 3, padding=1), nn.BatchNorm2d(64),
+        self.us1 = nn.Sequential(*[nn.ConvTranspose2d(8*f, 4*f, 2, stride=2)])  # 40x40
+        self.us2 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(4*f, 4*f, 3, padding=1), nn.BatchNorm2d(4*f),
                                    nn.ReLU(inplace=True)])  # 40x40
 
-        self.us3 = nn.Sequential(*[nn.ConvTranspose2d(64, 32, 2, stride=2)])  # 80x80
-        self.us4 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(32, 32, 3, padding=1), nn.BatchNorm2d(32),
+        self.us3 = nn.Sequential(*[nn.ConvTranspose2d(4*f, 2*f, 2, stride=2)])  # 80x80
+        self.us4 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(2*f, 2*f, 3, padding=1), nn.BatchNorm2d(2*f),
                                    nn.ReLU(inplace=True)])  # 80x80
 
-        self.us5 = nn.Sequential(*[nn.ConvTranspose2d(32, 16, 2, stride=2)])  # 160x160
-        self.us6 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(16, 16, 3, padding=1), nn.BatchNorm2d(16),
+        self.us5 = nn.Sequential(*[nn.ConvTranspose2d(2*f, f, 2, stride=2)])  # 160x160
+        self.us6 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(f, f, 3, padding=1), nn.BatchNorm2d(f),
                                    nn.ReLU(inplace=True)])  # 160x160
 
-        self.us7 = nn.Sequential(*[nn.ConvTranspose2d(16, 8, 2, stride=2)])  # 320x320
-        self.us8 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(8, 3, 3, padding=1)])  # 320x320
+        self.us7 = nn.Sequential(*[nn.ConvTranspose2d(f, int(f/2), 2, stride=2)])  # 320x320
+        self.us8 = nn.Sequential(*[nn.ReLU(inplace=True), nn.Conv2d(int(f/2), 3, 3, padding=1)])  # 320x320
 
         self.sigmoid = nn.Sigmoid()
 
